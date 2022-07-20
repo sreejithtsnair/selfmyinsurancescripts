@@ -1,0 +1,3 @@
+pip install -r requirements.txt
+py project/init/init_db.py
+py runserver.py
