@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myinsuranceapp
+  labels:
+    app: myinsuranceapp
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: myinsuranceapp
+  template:
+    metadata:
+      labels:
+        app: myinsuranceapp
+    spec:
+      containers:
+      - name: myinsuranceapp
+        image: 618383339/risun_myinsuranceapp
+        ports:
+        - name: http
+          containerPort: 5000
