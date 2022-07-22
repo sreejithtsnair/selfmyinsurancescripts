@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    
+    environment {
+        MY_CRED = credentials('azure-credentials')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master',url: 'https://github.com/ricardoahumada/terraform'
+            }
+        }    
+        stage('AZ') {
+            steps {
+                echo 'Showing az info'
+                withCredentials([azureServicePrincipal('azure-credentials')]) {
+                    sh 'az login --service-principal -u $MY_CRED_CLIENT_ID -p $MY_CRED_CLIENT_SECRET -t $MY_CRED_TENANT_ID'
+                    sh 'az account list'
+                }
+            }
+        }
+        stage('Terraform Init') {
+            steps {
+                echo 'tf initing...'
+                
+                dir("hello-tf-azure") {
+                    withCredentials([
+                        azureServicePrincipal(
+                            credentialsId: 'azure-credentials',
+                            subscriptionIdVariable: 'ARM_SUBSCRIPTION_ID',
+                            clientIdVariable: 'ARM_CLIENT_ID',
+                            clientSecretVariable: 'ARM_CLIENT_SECRET',
+                            tenantIdVariable: 'ARM_TENANT_ID'
+                        ), 
+                        string(credentialsId: 'access-key', variable: 'ARM_ACCESS_KEY')
+                    ]) {
+                        sh """
+                        echo "Initialising Terraform"
+                        terraform init -backend-config="access_key=$ARM_ACCESS_KEY"
+                        terraform plan -out out.plan
+                        terraform apply "out.plan"
+                        terraform show
+                        """
+                    }
+                    
+                }
+            }
+        }
+    }
+    post {
+        cleanup{
+            echo 'post do this when cleanup...'
+        }
+    }
+}
