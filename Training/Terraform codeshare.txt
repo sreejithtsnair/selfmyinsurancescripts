@@ -1,0 +1,72 @@
+#TERRAFORM
+
+# AZ install
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+## ref: https://docs.microsoft.com/en-us/cli/azure/get-started-with-azure-cli
+az login
+## az accout
+az account list
+## show vms in azure
+az vm list
+
+Export appid & password
+Do an init and apply
+Acquire appid, pwd, sub id.. 
+Initiate service principal 
+
+
+## Commands
+# init terraform
+terraform init
+# validate terraform
+terraform validate
+# execute terraform
+terraform apply
+# show resource groups
+az group list | grep hello
+
+# Examples repo
+https://github.com/ricardoahumada/terraform
+
+#Principals
+https://identity-man.eu/2021/03/19/service-principals-all-you-need-to-know
+
+
+# AKS example
+https://learn.hashicorp.com/tutorials/terraform/aks
+## creating a principal
+az ad sp create-for-rbac --skip-assignment
+## confg kubectl
+az aks get-credentials --resource-group $(terraform output -raw resource_group_name) --name $(terraform output -raw kubernetes_cluster_name)
+## delete a kube context
+kubectl config delete-context sensible-grubworm-aks
+
+# JENKINS TERRAFORM Pipeline
+## Credentials
+"subid": "be31b50a-f0ad-498f-b148-9d9032007b8e"
+"appId": "7cd595b6-b957-4553-9086-221cc713e392",
+"displayName": "terraform-jenkins",
+"password": "rK28Q~9WmPp1Z1mVqzt2s6dVKU4LitnzkKR6qcA.",
+"tenant": "8b85184d-f6f0-4ace-80dd-c3bda5a6c156"
+
+
+## variable definition
+variable "HELLO_TEXT" {
+  type       = string
+  description   = "a variable"
+  default = "Hello!"
+}
+
+# define env variable
+export TF_VAR_HELLO_TEXT="Hola mundo!"
+
+
+
+{
+  "appId": "74fa2819-85ee-4dce-92b9-1523f4ece6ab",
+  "displayName": "azure-cli-2022-07-25-11-54-30",
+  "password": "xJe8Q~IsLz-C4Sh5czK4XDF3SCNGltY1YJdBxbxp",
+  "tenant": "5ce3b1e1-a529-4fb1-9215-eadccba2e07d"
+}
+
+withKubeConfig([credentialsId: 'k8-credentials',serverUrl:'https://saving-kitten-k8s-5846b313.hcp.eastasia.azmk8s.io']) {

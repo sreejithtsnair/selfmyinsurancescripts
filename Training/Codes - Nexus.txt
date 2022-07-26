@@ -1,0 +1,223 @@
+pip # ****************************
+# DO NOT EDIT - READ ONLY!!!!
+# ****************************
+
+# PACKAGE EXAMPLE
+https://github.com/BillMills/python-package-example
+
+# BUILD PACKAGE
+py -m pip install --upgrade build
+py -m build
+
+# TWINE
+pip install twine
+
+twine upload --repository-url http://localhost:8081/repository/hosted-python/ dist/*
+
+twine upload  --repository-url http://localhost:8081/repository/hosted-python/ dist/* -u<sername> -p<password>
+
+
+# PIPELINE EXAMPLE
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master',url: 'https://github.com/ricardoahumada/SimuladorCoches' 
+                bat 'dir'
+	        }
+        }        
+        stage('Compile') {
+            steps {
+                dir ('standalone'){
+                    echo 'Building...'
+                    bat 'dir'
+                    bat 'C:/Programs/apache-maven-3.8.6/bin/mvn clean compile'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+            }
+        }
+        stage('Package') {
+            steps {
+                echo 'Packaging...'                
+            }
+        }
+        stage('Acceptance test') {
+            steps {
+                echo 'Acceptance...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+            }
+        }
+    }
+}
+
+
+# Python pipeline MyInsuranceScripts - stages example
+1. Checkout
+	git
+2. Install dependencies
+  x bat 'pip install -r r.txt'
+  x bat ''
+  x bat ''
+  x …
+  bat 'script.ps1'
+  sh 'script.sh'
+3. Testing scripts
+	echo “Testing” 
+4. Package project
+	bat 'py –m build'
+5. Acceptance tests
+	echo 'Acceptance tests...'
+6. Deploying
+	bat 'twine upload …'
+
+
+# MyInsuranceScripts
+
+1. Generate the script (pipeline task)
+2. Generate the Jenkinsfile
+3. Add the septup.py and MANIFEST to project
+4. Generate the package (manual / pipeline-> Jenkinsfile)
+5. Upload the package (manual / pipeline-> Jenkinsfile)
+
+
+# PYTHON PATH IN VM
+c:/Users/Administrator/AppData/Local/Programs/Python/Python39/python.exe
+
+# DELETE dir 
+bat 'rd /s /q "dist"'
+
+
+# PYTHON PIPELINE FULL INTERMEDIATE
+pipeline {
+    agent any
+    environment {
+     username = 'admin'
+     password = 'Pa55w.rd'
+    }
+    
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master',url: 'https://github.com/ricardoahumada/python-package-example' 
+                bat 'rd /s /q "dist"'
+                bat 'dir'
+	        }
+        }        
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+            }
+        }
+        stage('Package') {
+            steps {
+                echo 'Packaging...'
+                bat 'c:/Users/Administrator/AppData/Local/Programs/Python/Python39/python.exe -m build'
+            }
+        }
+        stage('Acceptance test') {
+            steps {
+                echo 'Acceptance...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+                echo "u${username} -p${password}"
+                // bat "twine upload  --repository-url http://localhost:8081/repository/hosted-python/ dist/* -u${username} -p${password}"
+                withCredentials([usernamePassword(credentialsId: 'nexus_credentials', usernameVariable: 'USER', passwordVariable: 'USERPASS')]) {
+                    echo "$USER $USERPASS"
+                    bat "twine upload  --repository-url http://localhost:8081/repository/hosted-python/ dist/* -u${USER} -p${USERPASS}"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'post do this always...'
+        }
+        success{
+            echo 'post do this when success...'
+        }
+        failure {
+            echo 'post do this when failure...'
+        }
+        cleanup{
+            echo 'post do this when cleanup...'
+            deleteDir()
+        }
+    }
+    
+  
+    
+    
+}
+
+
+# PYTHON PIPELINE FULL FINAL
+pipeline {
+    agent any
+    
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master',url: 'https://github.com/ricardoahumada/python-package-example' 
+                bat 'rd /s /q "dist"'
+                bat 'dir'
+	        }
+        }        
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+            }
+        }
+        stage('Package') {
+            steps {
+                echo 'Packaging...'
+                bat 'c:/Users/Administrator/AppData/Local/Programs/Python/Python39/python.exe -m build'
+            }
+        }
+        stage('Acceptance test') {
+            steps {
+                echo 'Acceptance...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+                withCredentials([usernamePassword(credentialsId: 'nexus_credentials', usernameVariable: 'USER', passwordVariable: 'USERPASS')]) {
+                    echo "$USER $USERPASS"
+                    bat "twine upload  --repository-url http://localhost:8081/repository/hosted-python/ dist/* -u${USER} -p${USERPASS}"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'post do this always...'
+        }
+        success{
+            echo 'post do this when success...'
+        }
+        failure {
+            echo 'post do this when failure...'
+        }
+        cleanup{
+            echo 'post do this when cleanup...'
+            deleteDir()
+        }
+    }
+}
+

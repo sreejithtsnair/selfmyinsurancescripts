@@ -1,0 +1,65 @@
+🔗 Create a resource group for the VMs
+
+az group create --name ansible_vms --location eastasia
+
+🔗 Create a virtual network
+
+az network vnet create --resource-group ansible_vms --name vnet --address-prefix 10.0.0.0/16 --subnet-name subnet --subnet-prefix 10.0.0.0/24
+
+🔗 Generate SSH keys
+
+ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -N ""
+ls -l ~/.ssh
+
+
+🔗 Set a variable to your image’s resource ID
+
+imageId=UbuntuLTS
+
+🔗 Create two VMs in azure
+
+az vm create --name vm1 \
+  --resource-group ansible_vms \
+  --image $imageId \
+  --ssh-key-values "@~/.ssh/id_rsa.pub" \
+  --vnet-name vnet \
+  --subnet subnet \
+  --tags owner=allianz docker=true \
+  --output jsonc \
+  --no-wait
+
+
+
+🔗 Create an “ansible” service principal and Ansible environment variables. Note that the Ansible service principal will be similar to the Hashicorp one, but uses a slight different set of environment variables.
+
+name="ansible"
+resourceGroup="ansible_vms"
+subId=$(az account show --output tsv --query id)
+echo $subId 
+tenantId=$(az account show --output tsv --query tenantId)
+az ad sp create-for-rbac --name $name --role Contributor --scopes /subscriptions/${subId}
+
+
+"subid": "be31b50a-f0ad-498f-b148-9d9032007b8e"
+"appId": "5573e0e7-57d4-48f8-8d6d-7a9692e67c88",
+"password": "oYP8Q~PWBa5g0Zhjtdey7JRGxGU54Gawy_ekgbwT",
+"tenant": "8b85184d-f6f0-4ace-80dd-c3bda5a6c156"
+
+export AZURE_SUBSCRIPTION_ID=$subId
+export AZURE_CLIENT_ID=<ApplicationId>
+export AZURE_SECRET=<Password>
+export AZURE_TENANT=$tenantId
+
+🔗 Create an ansible.cfg file. The file should contain the following:
+
+[defaults]
+inventory = ~/ansible/hosts
+roles_path = ~/ansible/roles
+deprecation_warnings=False
+nocows = 1
+
+🔗 Create a static hosts inventory. You will need to specify the public IP addresses of the VMs.
+
+echo "[allianz]" > hosts
+az vm list-ip-addresses --resource-group ansible_vms --output tsv --query [].virtualMachine.network.publicIpAddresses[0].ipAddress >> hosts
+

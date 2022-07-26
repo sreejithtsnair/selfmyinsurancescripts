@@ -1,0 +1,97 @@
+# YAML quickstart
+https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started
+
+🔗 nginx_deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+#Ricardo ACR
+docker login ricardobootcampregistry.azurecr.io
+ricardobootcampregistry
+w0IbwQswmy791VvpHti6X3V/x8Yl5=eQ
+
+# REPO EXAMPLES
+https://github.com/ricardoahumada/kubernetes
+
+# AKS cluster
+ref: https://docs.microsoft.com/en-us/azure/aks/learn/quick-kubernetes-deploy-portal?tabs=azure-cli
+
+# AZ install
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+## ref: https://docs.microsoft.com/en-us/cli/azure/get-started-with-azure-cli
+az login
+# get credentials
+az aks get-credentials --resource-group [resource-group-name] --name [aks-cluster-name] --admin
+
+# kubectl contexts
+kubectl config -h
+kubectl config get-contexts
+kubectl config set current-context MY-CONTEXT
+
+kubectl get nodes
+
+# Jenkins plugin
+https://plugins.jenkins.io/kubernetes-cli/
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Exexuting kubectl') {
+            steps {
+                echo 'Exexuting kubectl'
+                withKubeConfig([credentialsId: 'k8-credentials']) {
+                    sh 'kubectl get all'
+                }
+            }
+        }
+    }
+}
+
+# Allow jenkins access to certification files
+export KUBECONFIG=~/.kube/config
+sudo apt install -y acl
+setfacl -R -m u:jenkins:rwx /home/ubuntu/.minikube/profiles/minikube/
+
+# Example pipeline
+pipeline {
+    agent any
+
+    stages {
+         stage('Checkout') {
+            steps {
+                git branch: 'kubernetes',url: 'https://github.com/ricardoahumada/python-package-flask-test'
+            }
+        }  
+        stage('Exexuting kubectl') {
+            steps {
+                echo 'Exexuting kubectl'
+                withKubeConfig([credentialsId: 'k8-credentials']) {
+                    sh 'kubectl apply -f k8-app-deploy/1-python-package-flask-test_deployment.yaml'
+                    sh 'kubectl apply -f k8-app-deploy/2-python-package-flask-test_service.yaml'
+                }
+            }
+        }
+    }
+}
+
+
